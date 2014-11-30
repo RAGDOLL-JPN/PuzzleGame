@@ -334,12 +334,11 @@ void GameLayer::checkedBall(BallSprite::PositionIndex current, Direction directi
         checked = ball->getCheckedY();
     }
     
-    if (!checked) {
+    if (!checked) { // 未チェックのボールのみチェックする
         int num = 0;
         
-        while (true) {
+        while (true) {  // ボールが並んでいたら、「true」が返る
             // 検索位置を取得
-            
             BallSprite::PositionIndex searchPosition;
             if (direction == Direction::x) {
                 searchPosition = BallSprite::PositionIndex(current.x + num, current.y);
@@ -357,7 +356,7 @@ void GameLayer::checkedBall(BallSprite::PositionIndex current, Direction directi
                 if (direction == Direction::x) {
                     nextBall->setCheckedX(true);                    // チェックを行ったので、フラグを「true」とする
                 }else{
-                    nextBall->setCheckedY(true);
+                    nextBall->setCheckedY(true);                    // チェックを行ったので、フラグを「true」とする
                 }
                 
                 num++;
@@ -373,7 +372,7 @@ void GameLayer::checkedBall(BallSprite::PositionIndex current, Direction directi
                         std::map<BallSprite::BallType, int> removeNumber;
                         _removeNumbers.push_back(removeNumber);
                     }
-                    _removeNumbers[_chainNumber][ball->getBallType()] += num + 1;
+                    _removeNumbers[_chainNumber][ball->getBallType()] += num + 1;       // 消したボールの個数を記録する
                     
                     // すでにRemovedNoがあるものが存在するかチェック
                     for (int i = 0; i <= num; i++) {
@@ -403,9 +402,9 @@ void GameLayer::checkedBall(BallSprite::PositionIndex current, Direction directi
                     for (int i = 0; i <= num; i++) {
                         BallSprite::PositionIndex linedPosition;
                         if (direction == Direction::x) {
-                            linedPosition = BallSprite::PositionIndex(current.x + 1, current.y);
+                            linedPosition = BallSprite::PositionIndex(current.x + i, current.y);
                         }else{
-                            linedPosition = BallSprite::PositionIndex(current.x, current.y + 1);
+                            linedPosition = BallSprite::PositionIndex(current.x, current.y + i);
                         }
                         
                         int linedBallTag = BallSprite::generateTag(linedPosition);
