@@ -150,16 +150,17 @@ void GameLayer::onTouchMoved(Touch* touch, Event* unused_event) {
         touchBall->setPositionIndexAndChangePosition(_movingBall->getPositionIndex());  // 位置インデックスを交換する
         
         // 移動しているボールの情報を変更
-        _movingBall->setPositionIndex(touchBallPositionIndex);
+        _movingBall->setPositionIndex(touchBallPositionIndex);                          // 位置インデックスを交換
     }
 }
 
 void GameLayer::onTouchEnded(Touch* touch, Event* unused_event){
-    
+    // タップ操作によるボールの移動完了時の処理
+    movedBall();
 }
 
 void GameLayer::onTouchCancelled(Touch* touch, Event* unused_event){
-    
+    onTouchEnded(touch, unused_event);          // タップ終了イベントと同じ処理を行う
 }
 
 // タップした位置のチェック
@@ -240,7 +241,7 @@ bool GameLayer::existsLinedBalls() {
         for (int y = 1; y <= BALL_NUM_Y; y++) {
             // x方向にボールをチェック
             checkedBall(BallSprite::PositionIndex(x, y), Direction::x);
-            
+            // y方向にボールをチェック
             checkedBall(BallSprite::PositionIndex(x, y), Direction::y);
         }
     }
@@ -289,7 +290,7 @@ bool GameLayer::isSameBallType(BallSprite::PositionIndex current, Direction dire
     // 次のボールを取得
     int nextTag;        // 隣の位置インデックスからタグを取得する
     if (direction == Direction::x) {
-        nextTag = BallSprite::generateTag(BallSprite::PositionIndex(current.x, current.y + 1));
+        nextTag = BallSprite::generateTag(BallSprite::PositionIndex(current.x + 1, current.y));
     }else{
         nextTag = BallSprite::generateTag(BallSprite::PositionIndex(current.x, current.y + 1));
     }
