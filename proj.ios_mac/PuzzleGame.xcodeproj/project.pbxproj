@@ -89,6 +89,7 @@
 		58785F4A1A1A3969009B39AC /* yellow.png in Resources */ = {isa = PBXBuildFile; fileRef = 58785F291A1A3969009B39AC /* yellow.png */; };
 		58785F4F1A1A3BAF009B39AC /* BallSprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 58785F4D1A1A3BAF009B39AC /* BallSprite.cpp */; };
 		58BCB4DA1A1A471900817B78 /* GameLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 58BCB4D91A1A471900817B78 /* GameLayer.cpp */; };
+		58E668091A2B5953008A925B /* Character.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 58E668081A2B5953008A925B /* Character.cpp */; };
 		BF171245129291EC00B8313A /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF170DB012928DE900B8313A /* OpenGLES.framework */; };
 		BF1712471292920000B8313A /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BF170DB412928DE900B8313A /* libz.dylib */; };
 		BF1C47F01293687400B63C5D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF1C47EA1293683800B63C5D /* QuartzCore.framework */; };
@@ -319,6 +320,8 @@
 		58785F4E1A1A3BAF009B39AC /* BallSprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BallSprite.h; path = ../Classes/BallSprite.h; sourceTree = "<group>"; };
 		58BCB4D61A1A46F700817B78 /* GameLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GameLayer.h; path = ../Classes/GameLayer.h; sourceTree = "<group>"; };
 		58BCB4D91A1A471900817B78 /* GameLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GameLayer.cpp; path = ../Classes/GameLayer.cpp; sourceTree = "<group>"; };
+		58E668051A2B5936008A925B /* Character.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Character.h; path = ../Classes/Character.h; sourceTree = "<group>"; };
+		58E668081A2B5953008A925B /* Character.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Character.cpp; path = ../Classes/Character.cpp; sourceTree = "<group>"; };
 		BF170DB012928DE900B8313A /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		BF170DB412928DE900B8313A /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		BF1C47EA1293683800B63C5D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
@@ -401,6 +404,8 @@
 				1AFAF8B416D35DE700DB1158 /* AppDelegate.h */,
 				58BCB4D61A1A46F700817B78 /* GameLayer.h */,
 				58BCB4D91A1A471900817B78 /* GameLayer.cpp */,
+				58E668051A2B5936008A925B /* Character.h */,
+				58E668081A2B5953008A925B /* Character.cpp */,
 			);
 			name = Classes;
 			path = ../classes;
@@ -787,6 +792,7 @@
 			files = (
 				503AE10017EB989F00D1A890 /* AppController.mm in Sources */,
 				503AE10217EB989F00D1A890 /* RootViewController.mm in Sources */,
+				58E668091A2B5953008A925B /* Character.cpp in Sources */,
 				58785F4F1A1A3BAF009B39AC /* BallSprite.cpp in Sources */,
 				1AFAF8B716D35DE700DB1158 /* AppDelegate.cpp in Sources */,
 				503AE10117EB989F00D1A890 /* main.m in Sources */,
