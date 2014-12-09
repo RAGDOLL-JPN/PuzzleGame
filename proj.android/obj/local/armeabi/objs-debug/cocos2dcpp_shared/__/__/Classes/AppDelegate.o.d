@@ -310,7 +310,8 @@ obj/local/armeabi/objs-debug/cocos2dcpp_shared/__/__/Classes/AppDelegate.o: \
  /Users/NAKASHIMAshinichiro/Documents/01_GameProject/02_Applications/PuzzleGame/proj.android/../cocos2d/cocos/./deprecated/CCString.h \
  /Users/NAKASHIMAshinichiro/Documents/01_GameProject/02_Applications/PuzzleGame/proj.android/../cocos2d/cocos/./deprecated/CCNotificationCenter.h \
  /Users/NAKASHIMAshinichiro/Documents/01_GameProject/02_Applications/PuzzleGame/proj.android/../cocos2d/cocos/./deprecated/CCDeprecated.h \
- jni/../../Classes/GameLayer.h jni/../../Classes/BallSprite.h
+ jni/../../Classes/GameLayer.h jni/../../Classes/BallSprite.h \
+ jni/../../Classes/Character.h
 
 jni/../../Classes/AppDelegate.h:
 
@@ -937,3 +938,5 @@ jni/../../Classes/AppDelegate.h:
 jni/../../Classes/GameLayer.h:
 
 jni/../../Classes/BallSprite.h:
+
+jni/../../Classes/Character.h:

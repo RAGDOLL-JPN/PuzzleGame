@@ -12,6 +12,7 @@
 #include "cocos2d.h"
 #include <random>
 #include "BallSprite.h"
+#include "Character.h"
 
 class GameLayer:public cocos2d::Layer {
 protected:
@@ -30,7 +31,7 @@ protected:
         Enemy,
         EnemyHp,
         Char,
-        CHarHp,
+        CharHp,
         Ball,
         Level,
         Result,
@@ -43,7 +44,15 @@ protected:
     bool _touchable;                                                    // タップの可否
     int _maxRemovedNo;                                                  // 一度に削除される最大連鎖の番号
     int _chainNumber;                                                   // 連鎖数のカウント
-    std::vector<std::map<BallSprite::BallType, int>> _removeNumbers;     // 消去するボールのカウント
+    std::vector<std::map<BallSprite::BallType, int>> _removeNumbers;    // 消去するボールのカウント
+    
+    Character* _enemyData;                                              // 敵の情報
+    cocos2d::Sprite* _enemy;                                            // 敵グラフィック
+    cocos2d::ProgressTimer* _hpBarForEnemy;                             // 敵のヒットポイントバー
+    
+    cocos2d::Vector<Character*> _memberDatum;                           // メンバー情報
+    cocos2d::Vector<cocos2d::Sprite*> _members;                         // メンバーグラフィック
+    cocos2d::Vector<cocos2d::ProgressTimer*> _hpBarForMemebers;         // メンバーのヒットポイントバー
     
     void initBackground();                                              // 背景の初期化
     void initBalls();                                                   // ボールの初期表示
@@ -64,6 +73,9 @@ protected:
     void removeAndGenerateBalls();                                      // ボールの削除とボールの生成
     void generateBalls(int xLineNum, int fallCount);                    // ボールを生成する
     void animationBalls();                                              // ボールの消去と落下アニメーション
+    
+    void initEnemy();                                                   // 敵の表示
+    void initMembers();                                                 // メンバーの表示
     
 public:
     GameLayer();                                                        // コンストラクタ

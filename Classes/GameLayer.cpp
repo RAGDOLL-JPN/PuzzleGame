@@ -10,6 +10,7 @@
 
 #define BALL_NUM_X 6
 #define BALL_NUM_Y 5
+#define WINSIZE Director::getInstance()->getWinSize()
 
 USING_NS_CC;
 
@@ -52,12 +53,20 @@ bool GameLayer::init() {
     
     initBackground();           // 背景の初期化
     initBalls();                // ボールの初期表示
+    initEnemy();                // 敵の表示
+    initMembers();              // メンバーの表示
     
     return true;
 }
 
 // 背景の初期化
 void GameLayer::initBackground() {
+    // キャラクター部分の背景
+    auto bgForCharacter = Sprite::create("Background1.png");
+    bgForCharacter->setAnchorPoint(Point(0, 1));
+    bgForCharacter->setPosition(Point(0, WINSIZE.height));
+    addChild(bgForCharacter, ZOrder::BgForCharacter);
+    
     // パズル部分の背景
     auto bgForPuzzle = Sprite::create("Background2.png");
     bgForPuzzle->setAnchorPoint(Point::ZERO);
@@ -484,5 +493,86 @@ void GameLayer::animationBalls() {
     for (auto ball : allBalls) {
         // ボールのアニメーションを実行する
         ball.second->removingAndFallingAnimation(_maxRemovedNo);
+    }
+}
+
+void GameLayer::initEnemy() {
+    // 敵の情報
+    _enemyData = Character::create();
+    _enemyData->retain();
+    _enemyData->setMaxHp(10000);
+    _enemyData->setHp(10000);
+    _enemyData->setElement(Character::Element::Wind);
+    _enemyData->setTurnCount(3);
+    
+    // 敵の表示
+    _enemy = Sprite::create("Enemy1.png");
+    _enemy->setPosition(Point(320, 660 + (WINSIZE.height - 660) / 2));
+    addChild(_enemy, ZOrder::Enemy);
+    
+    // 敵のヒットポイントバー枠の表示
+    auto hpBg = Sprite::create("HpEnemyBackground.png");
+    hpBg->setPosition(Point(320, 530 + (WINSIZE.height - 660) / 2));
+    addChild(hpBg, ZOrder::EnemyHp);
+    
+    // 敵のヒットポイントバーの表示
+    _hpBarForEnemy = ProgressTimer::create(Sprite::create("HpEnemyRed.png"));
+    _hpBarForEnemy->setPosition(Point(hpBg->getContentSize().width / 2, hpBg->getContentSize().height / 2));
+    _hpBarForEnemy->setType(ProgressTimer::Type::BAR);
+    _hpBarForEnemy->setMidpoint(Point::ZERO);
+    _hpBarForEnemy->setBarChangeRate(Point(1, 0));
+    _hpBarForEnemy->setPercentage(_enemyData->getHpPercentage());
+    hpBg->addChild(_hpBarForEnemy);
+}
+
+void GameLayer::initMembers() {
+    std::vector<std::string> fileNames {
+        "CardBlue.png",
+        "CardRed.png",
+        "CardGreen.png",
+        "CardYellow.png",
+        "CardPurple.png"
+    };
+    
+    std::vector<Character::Element> elements {
+        Character::Element::Water,
+        Character::Element::Fire,
+        Character::Element::Wind,
+        Character::Element::Holy,
+        Character::Element::Shadow,
+    };
+    
+    // 味方のメンバー数ループする
+    for (int i = 0; i < fileNames.size(); i++) {
+        //メンバー
+        auto memberData = Character::create();
+        memberData->setMaxHp(200);
+        memberData->setHp(200);
+        memberData->setElement(elements[i]);
+        _memberDatum.pushBack(memberData);
+        
+        // メンバーの表示
+        auto member = Sprite::create(fileNames[i].c_str());
+        member->setPosition(Point(70 + i * 125, 598));
+        addChild(member, ZOrder::Char);
+        
+        // メンバーヒットポイントバー枠の表示
+        auto hpBg = Sprite::create("HpCardBackground.png");
+        hpBg->setPosition(Point(70 + i * 125, 554));
+        addChild(hpBg, ZOrder::CharHp);
+        
+        // メンバーヒットポイントバーの表示
+        auto hpBarForMember = ProgressTimer::create(Sprite::create("HpCardGreen.png"));
+        hpBarForMember->setPosition(Point(hpBg->getContentSize().width / 2, hpBg->getContentSize().height / 2));
+        hpBarForMember->setType(ProgressTimer::Type::BAR);
+        hpBarForMember->setMidpoint(Point::ZERO);
+        hpBarForMember->setBarChangeRate(Point(1, 0));
+        hpBarForMember->setPercentage(memberData->getHpPercentage());
+        hpBg->addChild(hpBarForMember);
+        
+        // 配列に格納
+        // 味方のメンバー配列で用意しているので、ここで追加する
+        _members.pushBack(member);
+        _hpBarForMemebers.pushBack(hpBarForMember);
     }
 }
