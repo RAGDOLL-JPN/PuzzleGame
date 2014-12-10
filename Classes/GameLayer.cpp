@@ -23,9 +23,8 @@ GameLayer::GameLayer()
 , _chainNumber(0) {
     // 乱数初期化および各ボールの出現の重みを指定
     std::random_device device;
-    _engine = std::default_random_engine(device());                             // ボールの重みを設定
+    _engine = std::default_random_engine(device());     // ボールの重みを設定
     _distForBall = std::discrete_distribution<int> {20, 20, 20, 20, 20, 10};
-    _distForMember = std::uniform_int_distribution<int> (0, 4);                 // 0、1、2、3、4のいずれかの値を取得することができる
 }
 
 // シーンの生成
@@ -234,35 +233,7 @@ void GameLayer::checksLinedBalls() {
         runAction(seq);
     }else{
         // タップを有効にする
-        //_touchable = true;
-        
-        // calculateDamage関数で計算する値の初期化
-        int chainNum = 0;
-        int damage = 0;
-        int healing = 0;
-        std::set<int> attackers;
-        
-        // ダメージ・回復の計算
-        calculateDamage(chainNum, healing, damage, attackers);
-        
-        // 敵にダメージを与える
-        int afterHp = _enemyData->getHp() - damage;
-        
-        if (damage > 0) {
-            // アタック処理
-            attackToEnemy(damage, attackers);
-        }
-        
-        if (healing > 0) {
-            // 回復処理
-            healMembers(healing);
-        }
-        
-        // 敵にダメージを与えた後の処理を設定
-        if (afterHp > 0) {// 敵のHPが残っている場合は、敵のターンに移る
-            CallFunc* func = CallFunc::create(CC_CALLBACK_0(GameLayer::attackFromEnemy, this));
-            runAction(Sequence::create(DelayTime::create(0.5), func, nullptr));
-        }
+        _touchable = true;
     }
 }
 
@@ -605,44 +576,3 @@ void GameLayer::initMembers() {
         _hpBarForMemebers.pushBack(hpBarForMember);
     }
 }
-
-// ダメージの計算
-void GameLayer::calculateDamage(int &chainNum, int &healing, int &damage, std::set<int> &attackers) {
-    auto removeIt = _removeNumbers.begin();
-    while (removeIt != _removeNumbers.end()) {
-        auto ballIt = (*removeIt).begin();
-        while (ballIt != (*removeIt).end()) {
-            if ((*ballIt).first == BallSprite::BallType::Pink) {// ピンクのボールを揃えた場合は、HPを回復する
-                // 回復
-                healing += 5;
-            }
-            else {
-                // アタッカー分のデータを繰り返す
-                for (int i = 0; i < _memberDatum.size(); i++) {
-                    // メンバー情報取得
-                    auto memberData = _memberDatum.at(i);
-                    
-                    // メンバーのHPが0の場合は、以下の処理を行わない
-                    if (memberData->getHp() <= 0) {
-                        continue;
-                    }
-                    // 消されたボールとアタッカーの属性よりアタッカーの判定
-                    if (isAttacker((*ballIt).first, memberData->getElement())) {
-                        // アタッカー情報の保持
-                        attackers.insert(i);
-                        
-                        // ダメージ
-                        damage += Character::getDamage((*ballIt).second, chainNum, memberData, _enemyData);         // ダメージを計算する
-                    }
-                }
-            }
-            
-            chainNum++;
-            ballIt++;
-        }
-        
-        removeIt++;
-    }
-}
-
-//TODO:12/11にアタッカー判定を記述（P173~）
