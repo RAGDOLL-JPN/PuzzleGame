@@ -25,6 +25,7 @@ GameLayer::GameLayer()
     std::random_device device;
     _engine = std::default_random_engine(device());     // ボールの重みを設定
     _distForBall = std::discrete_distribution<int> {20, 20, 20, 20, 20, 10};
+    _distFromMember = std::uniform_int_distribution<int> (0, 4);                // 0、1、2、3、4のいずれかの値を取得することができる
 }
 
 // シーンの生成
@@ -233,7 +234,35 @@ void GameLayer::checksLinedBalls() {
         runAction(seq);
     }else{
         // タップを有効にする
-        _touchable = true;
+        //_touchable = true;
+        
+        // CalculateDamage関数で計算する値の初期化
+        int chainNum = 0;
+        int damage = 0;
+        int healing = 0;
+        std::set<int> attackers;
+        
+        // ダメージ・回復の計算
+        calculateDamage(chainNum, healing, damage, attackers);
+        
+        // 敵にダメージを与える
+        int afterHp = _enemyData->getHp() - damage;
+        
+        if (damage > 0) {
+            // アタック処理
+            attackToEnemy(damage, attackers);
+        }
+        
+        if (healing > 0) {
+            // 回復処理
+            healMember(healing);
+        }
+        
+        // 敵にダメージを与えた後の処理を設定
+        if (afterHp > 0) {
+            CallFunc* func = CallFunc::create(CC_CALLBACK_0(GameLayer::attackFromEnemy, this));
+            runAction(Sequence::create(DelayTime::create(0.5), func, nullptr));
+        }
     }
 }
 
@@ -576,3 +605,89 @@ void GameLayer::initMembers() {
         _hpBarForMemebers.pushBack(hpBarForMember);
     }
 }
+
+// ダメージ計算
+void GameLayer::calculateDamage(int &chainNum, int &healing, int &damage, std::set<int> &attackers) {
+    auto removeIt = _removeNumbers.begin();
+    while (removeIt != _removeNumbers.end()) {
+        auto ballIt = (*removeIt).begin();
+        while (ballIt != (*removeIt).end()) {
+            if ((*ballIt).first == BallSprite::BallType::Pink) {
+                // 回復
+                healing += 5;
+            }else{
+                // アタッカー分のデータを繰り返す
+                for (int i = 0; i < _memberDatum.size(); i++) {
+                    // メンバー情報
+                    auto memberData = _memberDatum.at(i);
+                    
+                    // メンバーのHPが0の場合は、以下の処理を行わない
+                    if (memberData->getHp() <= 0) {
+                        continue;
+                    }
+                    
+                    // 消されたボールとアタッカーの属性よりアタッカーの判定
+                    if (isAttackers((*ballIt).first, memberData->getElement())) {
+                        // アタッカー情報の保存
+                        attackers.insert(i);
+                        
+                        // ダメージ
+                        damage += Character::getDamage((*ballIt).second, chainNum, memberData, _enemyData);
+                    }
+                }
+            }
+            
+            chainNum++;
+            ballIt++;
+        }
+        
+        removeIt++;
+    }
+}
+
+// アタッカー判定
+bool GameLayer::isAttackers(BallSprite::BallType type, Character::Element element) {
+    switch (type) {
+        case BallSprite::BallType::Red:
+            // 赤ボール:火属性
+            if (element == Character::Element::Fire) {
+                return true;
+            }
+            break;
+            
+        case BallSprite::BallType::Blue:
+            // 青ボール:水属性
+            if (element == Character::Element::Water) {
+                return true;
+            }
+            break;
+            
+        case BallSprite::BallType::Green:
+            // 緑ボール:風属性
+            if (element == Character::Element::Wind) {
+                return true;
+            }
+            break;
+            
+        case BallSprite::BallType::Yellow:
+            // 黄ボール:光属性
+            if (element == Character::Element::Holy) {
+                return true;
+            }
+            break;
+            
+        case BallSprite::BallType::Purple:
+            // 紫ボール:闇属性
+            if (element == Character::Element::Shadow) {
+                return true;
+            }
+            break;
+            
+        default:
+            break;
+    }
+    
+    return false;
+}
+
+// TODO:敵への攻撃を実装(p174)
