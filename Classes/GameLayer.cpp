@@ -25,7 +25,7 @@ GameLayer::GameLayer()
     std::random_device device;
     _engine = std::default_random_engine(device());     // ボールの重みを設定
     _distForBall = std::discrete_distribution<int> {20, 20, 20, 20, 20, 10};
-    _distFromMember = std::uniform_int_distribution<int> (0, 4);                // 0、1、2、3、4のいずれかの値を取得することができる
+    _distForMember = std::uniform_int_distribution<int> (0, 4);                // 0、1、2、3、4のいずれかの値を取得することができる
 }
 
 // シーンの生成
@@ -233,9 +233,6 @@ void GameLayer::checksLinedBalls() {
         auto seq = Sequence::create(delay, func, nullptr);
         runAction(seq);
     }else{
-        // タップを有効にする
-        //_touchable = true;
-        
         // CalculateDamage関数で計算する値の初期化
         int chainNum = 0;
         int damage = 0;
@@ -690,4 +687,148 @@ bool GameLayer::isAttackers(BallSprite::BallType type, Character::Element elemen
     return false;
 }
 
-// TODO:敵への攻撃を実装(p174)
+// 敵への攻撃
+void GameLayer::attackToEnemy(int damage, std::set<int> attackers) {
+    // 敵のHPを取得する
+    float preHpPercentage = _enemyData->getHpPercentage();
+    
+    // ダメージをセットする
+    int afterHp = _enemyData->getHp() - damage;
+    if (afterHp < 0) {
+        afterHp = 0;
+    }
+    _enemyData->setHp(afterHp);                     // 敵のHPをセットする
+    
+    // 敵のヒットポイントバーのアニメーション
+    auto act = ProgressFromTo::create(0.5, preHpPercentage, _enemyData->getHpPercentage());     // アニメーションを用意する
+    _hpBarForEnemy->runAction(act);
+    
+    // 敵の被ダメージアニメーション
+    _enemy->runAction(vibratingAnimation(afterHp));                                             // アニメーションを用意する
+    
+    // メンバーの攻撃アニメーション
+    for (auto attacker : attackers) {
+        auto member = _members.at(attacker);
+        member->runAction(Sequence::create(MoveBy::create(0.1, Point(0, 10)),
+                                           MoveBy::create(0.1, Point(0, -10)), nullptr));       // アニメーションの用意する
+    }
+}
+
+// メンバーの回復
+void GameLayer::healMember(int healing) {
+    for (int i = 0; i < _memberDatum.size(); i++) {
+        // メンバーデータ取得
+        auto memberData = _memberDatum.at(i);
+        
+        // HPが0の場合は、回復しない
+        if (memberData->getHp() <= 0) {
+            continue;
+        }
+        
+        // メンバーを回復する
+        float preHpPercentage = memberData->getHpPercentage();
+        int afterHp = memberData->getHp() + healing;
+        if (afterHp > memberData->getMaxHp()) {
+            afterHp = memberData->getMaxHp();
+        }
+        memberData->setHp(afterHp);                                                                 // 味方のHPをセットする
+        
+        // メンバーHPアニメーション
+        auto act = ProgressFromTo::create(0.5, preHpPercentage, memberData->getHpPercentage());     // アニメーションを用意する
+        _hpBarForMemebers.at(i)->runAction(act);
+    }
+}
+
+// 敵からの攻撃
+void GameLayer::attackFromEnemy() {
+    if (!_enemyData->isAttackTurn()) {
+        // 敵の攻撃ターンでない場合は、一連の処理を終わらせる
+        endAnimation();
+        return;
+    }
+    
+    // メンバーを1人選択
+    int index;
+    Character* memberData;
+    
+    do {
+        // ランダムでメンバーを選択
+        index = _distForMember(_engine);
+        memberData = _memberDatum.at(index);
+        
+        // HPが0のメンバーを選択した場合は、再度選択し直す
+    } while (memberData->getHp() <= 0);
+    
+    auto member = _members.at(index);
+    auto hpBarForMember = _hpBarForMemebers.at(index);
+    
+    // メンバーにダメージを与える
+    float preHpPercentage = memberData->getHpPercentage();
+    int afterHp = memberData->getHp() - 25;
+    if (afterHp > memberData->getMaxHp()) {
+        afterHp = memberData->getMaxHp();
+    }
+    memberData->setHp(afterHp);
+    
+    // メンバーヒットポイントバーのアニメーション
+    auto act = ProgressFromTo::create(0.5, preHpPercentage, memberData->getHpPercentage());     // アニメーションを用意する
+    hpBarForMember->runAction(act);
+    
+    // メンバーの被ダメージアニメーション
+    member->runAction(vibratingAnimation(afterHp));                                             // アニメーションを用意する
+    
+    // 敵の攻撃アニメーション
+    auto seq = Sequence::create(MoveBy::create(0.1, Point(0, -10)),
+                                MoveBy::create(0.1, Point(0, -10)), NULL);                      // アニメーションを用意する
+    _enemy->runAction(seq);
+    
+    // 味方の全員をチェック
+    bool allHpZero = true;
+    
+    for (auto character : _memberDatum) {
+        if (character->getHp() > 0) {
+            allHpZero = false;
+            break;
+        }
+    }
+    
+    // アニメーション終了時処理
+    if (!allHpZero) {
+        CallFunc* func = CallFunc::create(CC_CALLBACK_0(GameLayer::endAnimation, this));
+        runAction(Sequence::create(DelayTime::create(0.5), func, nullptr));
+    }
+}
+
+// アニメーション終了時処理
+void GameLayer::endAnimation() {
+    // タップを有効にする
+    _touchable = true;
+}
+
+// 振動アニメーション
+Spawn* GameLayer::vibratingAnimation(int afterHp) {
+    // 振動アニメーション
+    auto move = Sequence::create(MoveBy::create(0.025, Point( 5,  5)),
+                                 MoveBy::create(0.025, Point(-5, -5)),
+                                 MoveBy::create(0.025, Point(-5, -5)),
+                                 MoveBy::create(0.025, Point( 5,  5)),
+                                 MoveBy::create(0.025, Point( 5, -5)),
+                                 MoveBy::create(0.025, Point(-5,  5)),
+                                 MoveBy::create(0.025, Point( 5, -5)),
+                                 nullptr);
+    
+    // ダメージ時に色を赤くする
+    Action* tint;
+    if (afterHp > 0) {
+        // HPが0より大きい場合は、元の色に戻す
+        tint = Sequence::create(TintTo::create(0, 255, 0, 0),
+                                DelayTime::create(0.2),
+                                TintTo::create(0, 255, 255, 255),
+                                nullptr);
+    }else{
+        // HPが0の場合は、赤いままにする
+        tint = TintTo::create(0, 255, 0, 0);
+    }
+    
+    return Spawn::create(move, tint, nullptr);
+}

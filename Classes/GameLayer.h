@@ -39,7 +39,7 @@ protected:
     
     std::default_random_engine _engine;                                         // 乱数生成エンジン
     std::discrete_distribution<int> _distForBall;                               // 乱数の分布
-    std::uniform_int_distribution<int> _distFromMember;                         // 乱数の範囲
+    std::uniform_int_distribution<int> _distForMember;                          // 乱数の範囲
     BallSprite* _movingBall;                                                    // 動かしているボール
     bool _movedBall;                                                            // 他のボールとの接触有無
     bool _touchable;                                                            // タップの可否
