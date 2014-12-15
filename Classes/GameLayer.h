@@ -55,6 +55,9 @@ protected:
     cocos2d::Vector<cocos2d::Sprite*> _members;                                 // メンバーグラフィック
     cocos2d::Vector<cocos2d::ProgressTimer*> _hpBarForMemebers;                 // メンバーのヒットポイントバー
     
+    int _level;                                                                 /** 現在のレベル */
+    int _nextlevel;                                                             /** 次のレベル */
+    
     void initBackground();                                                      // 背景の初期化
     void initBalls();                                                           // ボールの初期表示
     BallSprite* newBalls(BallSprite::PositionIndex positionIndex,
@@ -86,11 +89,17 @@ protected:
     void endAnimation();                                                        // アニメーション終了時処理
     cocos2d::Spawn* vibratingAnimation(int afterHp);                            // 振動アニメーション
     
+    void initLevelLayer();                                                      /** レベル表示のレイヤーの表示 */
+    void removeLevelLayer(float dt);                                            /** レベル表示レイヤーの削除 */
+    void winAnimation();                                                        /** Winアニメーション */
+    void loseAnimation();                                                       /** Loseアニメーション */
+    void nextScene(float dt);                                                   /** 次のシーンへ遷移 */
+    
 public:
     GameLayer();                                                                // コンストラクタ
-    virtual bool init();                                                        // 初期化
-    CREATE_FUNC(GameLayer);                                                     // create関数生成
-    static cocos2d::Scene* createScene();                                       // シーン生成
+    virtual bool init(int level);                                               // 初期化
+    static GameLayer* create(int level);                                        /** create関数生成 */
+    static cocos2d::Scene* createScene(int level = 1);                                   // シーン生成
     
     // シングルタップイベント
     virtual bool onTouchBegan(cocos2d::Touch* touch, cocos2d::Event* unused_event);

@@ -11,6 +11,7 @@
 #define BALL_NUM_X 6
 #define BALL_NUM_Y 5
 #define WINSIZE Director::getInstance()->getWinSize()
+#define TAG_LEVEL_LAYER 10000
 
 USING_NS_CC;
 
@@ -20,7 +21,9 @@ GameLayer::GameLayer()
 , _movedBall(false)
 , _touchable(true)
 , _maxRemovedNo(0)
-, _chainNumber(0) {
+, _chainNumber(0)
+, _level(0)
+, _nextlevel(0) {
     // 乱数初期化および各ボールの出現の重みを指定
     std::random_device device;
     _engine = std::default_random_engine(device());     // ボールの重みを設定
@@ -29,16 +32,25 @@ GameLayer::GameLayer()
 }
 
 // シーンの生成
-Scene* GameLayer::createScene() {
+Scene* GameLayer::createScene(int level) {
     auto scene = Scene::create();
-    auto layer = GameLayer::create();
+    auto layer = GameLayer::create(level);
     scene->addChild(layer);
     
     return scene;
 }
 
+/** インスタンス生成 */
+GameLayer* GameLayer::create(int level) {
+    GameLayer *pRet = new GameLayer();
+    pRet->init(level);
+    pRet->autorelease();
+    
+    return pRet;
+}
+
 // 初期化
-bool GameLayer::init() {
+bool GameLayer::init(int level) {
     if (!Layer::init()) {
         return false;
     }
@@ -52,10 +64,13 @@ bool GameLayer::init() {
     touchListener->onTouchCancelled = CC_CALLBACK_2(GameLayer::onTouchCancelled, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(touchListener, this);
     
+    _level = level;             // レベルの保持
+    
     initBackground();           // 背景の初期化
     initBalls();                // ボールの初期表示
     initEnemy();                // 敵の表示
     initMembers();              // メンバーの表示
+    initLevelLayer();           // レベル表示レイヤーの表示
     
     return true;
 }
@@ -256,8 +271,11 @@ void GameLayer::checksLinedBalls() {
         }
         
         // 敵にダメージを与えた後の処理を設定
+        CallFunc* func;
         if (afterHp > 0) {
-            CallFunc* func = CallFunc::create(CC_CALLBACK_0(GameLayer::attackFromEnemy, this));
+            func = CallFunc::create(CC_CALLBACK_0(GameLayer::winAnimation, this));      // 敵のHPが0以下の場合、Winアニメーションを表示
+        }else{
+            func = CallFunc::create(CC_CALLBACK_0(GameLayer::attackFromEnemy, this));
             runAction(Sequence::create(DelayTime::create(0.5), func, nullptr));
         }
     }
@@ -526,13 +544,13 @@ void GameLayer::initEnemy() {
     // 敵の情報
     _enemyData = Character::create();
     _enemyData->retain();
-    _enemyData->setMaxHp(10000);
-    _enemyData->setHp(10000);
+    _enemyData->setMaxHp(10000 * _level);                                       // レベルよって、HPを変化
+    _enemyData->setHp(10000 * _level);
     _enemyData->setElement(Character::Element::Wind);
     _enemyData->setTurnCount(3);
     
     // 敵の表示
-    _enemy = Sprite::create("Enemy1.png");
+    _enemy = Sprite::create(StringUtils::format("Enemy%d.png", _level));        // レベルによって、敵のグラフィックを変更
     _enemy->setPosition(Point(320, 660 + (WINSIZE.height - 660) / 2));
     addChild(_enemy, ZOrder::Enemy);
     
@@ -793,10 +811,13 @@ void GameLayer::attackFromEnemy() {
     }
     
     // アニメーション終了時処理
+    CallFunc* func;
     if (!allHpZero) {
-        CallFunc* func = CallFunc::create(CC_CALLBACK_0(GameLayer::endAnimation, this));
-        runAction(Sequence::create(DelayTime::create(0.5), func, nullptr));
+        func = CallFunc::create(CC_CALLBACK_0(GameLayer::loseAnimation, this));                 // メンバーのHPが0以下の場合、loseアニメーションを表示
+    }else{
+        func = CallFunc::create(CC_CALLBACK_0(GameLayer::endAnimation, this));
     }
+    runAction(Sequence::create(DelayTime::create(0.5), func, nullptr));
 }
 
 // アニメーション終了時処理
@@ -831,4 +852,87 @@ Spawn* GameLayer::vibratingAnimation(int afterHp) {
     }
     
     return Spawn::create(move, tint, nullptr);
+}
+
+/** レベル表示レイヤーの表示 */
+void GameLayer::initLevelLayer() {
+    // レベルレイヤーの生成
+    auto levelLayer = LayerColor::create(Color4B(0, 0, 0, 191), WINSIZE.width, WINSIZE.height);    // 黒い透過の背景を表示
+    levelLayer->setPosition(Point::ZERO);
+    levelLayer->setTag(TAG_LEVEL_LAYER);
+    addChild(levelLayer, ZOrder::Level);
+    
+    // レベルの表示
+    auto levelSprite = Sprite::create("Level.png");
+    levelSprite->setPosition(Point(WINSIZE.width * 0.45, WINSIZE.height * 0.5));
+    levelLayer->addChild(levelSprite);
+    
+    // レベル数の表示
+    auto levelNumPath = StringUtils::format("%d.png", _level);                                      // StringUtilsクラスformat関数でフォーマットが簡単に利用できる
+    auto levelNumSprite = Sprite::create(levelNumPath.c_str());
+    levelNumSprite->setPosition(Point(WINSIZE.width * 0.85, WINSIZE.height * 0.5));
+    levelLayer->addChild(levelNumSprite);
+    
+    // 1.5秒後に消えるようにする
+    scheduleOnce(schedule_selector(GameLayer::removeLevelLayer), 1.5);
+}
+
+/** レベル表示レイヤーの削除 */
+void GameLayer::removeLevelLayer(float dt) {
+    // タップ可能とする
+    _touchable = true;
+    
+    // 0.5秒で消えるようにする
+    auto levelLayer = getChildByTag(TAG_LEVEL_LAYER);
+    levelLayer->runAction(Sequence::create(FadeTo::create(0.5, 0),
+                                           RemoveSelf::create(),nullptr));
+}
+
+/** Winアニメーション*/
+void GameLayer::winAnimation() {
+    // 白い背景を用意する
+    auto whiteLayer = LayerColor::create(Color4B(255, 255, 255, 127), WINSIZE.width, WINSIZE.height);       // 白い透過の背景を表示する
+    whiteLayer->setPosition(Point::ZERO);
+    addChild(whiteLayer, ZOrder::Result);
+    
+    // Winグラフィックを表示する
+    auto win = Sprite::create("Win.png");
+    win->setPosition(Point(WINSIZE.width / 2, WINSIZE.height / 2));
+    addChild(win, ZOrder::Result);
+    
+    // 次のレベルを設定（Level13の次はないので、Level11に戻る）
+    if (_level >= 3) {
+        _nextlevel = 1;
+    }else{
+        _nextlevel = _level + 1;                // 次のレベルを指定する
+    }
+    
+    // 指定秒数に次のシーンへ
+    scheduleOnce(schedule_selector(GameLayer::nextScene), 3);
+}
+
+/** Loseアニメーション */
+void GameLayer::loseAnimation() {
+    // 黒い背景を用意する
+    auto blackLayer = LayerColor::create(Color4B(0, 0, 0, 127), WINSIZE.width, WINSIZE.height);         // 黒い透過の背景を表示する
+    blackLayer->setPosition(Point::ZERO);
+    addChild(blackLayer, ZOrder::Result);
+    
+    // Loseグラフィックを表示する
+    auto lose = Sprite::create("Lose.png");
+    lose->setPosition(Point(WINSIZE.width / 2, WINSIZE.height / 2));
+    addChild(lose, ZOrder::Result);
+    
+    // 次のレベルを設定
+    _nextlevel = 1;
+    
+    // 指定秒数に次のシーンへ
+    scheduleOnce(schedule_selector(GameLayer::nextScene), 3);
+}
+
+// 次のシーンへ遷移
+void GameLayer::nextScene(float dt) {
+    // 次のシーンを生成する
+    auto scene = GameLayer::createScene(_nextlevel);
+    Director::getInstance()->replaceScene(scene);
 }
