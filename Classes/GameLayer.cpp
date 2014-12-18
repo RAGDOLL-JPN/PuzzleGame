@@ -272,12 +272,13 @@ void GameLayer::checksLinedBalls() {
         
         // 敵にダメージを与えた後の処理を設定
         CallFunc* func;
-        if (afterHp > 0) {
+        if (afterHp <= 0) {
             func = CallFunc::create(CC_CALLBACK_0(GameLayer::winAnimation, this));      // 敵のHPが0以下の場合、Winアニメーションを表示
         }else{
             func = CallFunc::create(CC_CALLBACK_0(GameLayer::attackFromEnemy, this));
-            runAction(Sequence::create(DelayTime::create(0.5), func, nullptr));
         }
+        
+        runAction(Sequence::create(DelayTime::create(0.5), func, nullptr));
     }
 }
 
