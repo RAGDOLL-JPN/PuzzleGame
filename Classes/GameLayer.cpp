@@ -813,7 +813,7 @@ void GameLayer::attackFromEnemy() {
     
     // アニメーション終了時処理
     CallFunc* func;
-    if (!allHpZero) {
+    if (allHpZero) {
         func = CallFunc::create(CC_CALLBACK_0(GameLayer::loseAnimation, this));                 // メンバーのHPが0以下の場合、loseアニメーションを表示
     }else{
         func = CallFunc::create(CC_CALLBACK_0(GameLayer::endAnimation, this));
