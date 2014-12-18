@@ -835,6 +835,7 @@ Spawn* GameLayer::vibratingAnimation(int afterHp) {
                                  MoveBy::create(0.025, Point( 5,  5)),
                                  MoveBy::create(0.025, Point( 5, -5)),
                                  MoveBy::create(0.025, Point(-5,  5)),
+                                 MoveBy::create(0.025, Point(-5,  5)),
                                  MoveBy::create(0.025, Point( 5, -5)),
                                  nullptr);
     
