@@ -23,7 +23,7 @@ GameLayer::GameLayer()
 , _maxRemovedNo(0)
 , _chainNumber(0)
 , _level(0)
-, _nextlevel(0) {
+, _nextLevel(0) {
     // 乱数初期化および各ボールの出現の重みを指定
     std::random_device device;
     _engine = std::default_random_engine(device());     // ボールの重みを設定
@@ -618,7 +618,7 @@ void GameLayer::initMembers() {
         // 配列に格納
         // 味方のメンバー配列で用意しているので、ここで追加する
         _members.pushBack(member);
-        _hpBarForMemebers.pushBack(hpBarForMember);
+        _hpBarForMembers.pushBack(hpBarForMember);
     }
 }
 
@@ -643,7 +643,7 @@ void GameLayer::calculateDamage(int &chainNum, int &healing, int &damage, std::s
                     }
                     
                     // 消されたボールとアタッカーの属性よりアタッカーの判定
-                    if (isAttackers((*ballIt).first, memberData->getElement())) {
+                    if (isAttacker((*ballIt).first, memberData->getElement())) {
                         // アタッカー情報の保存
                         attackers.insert(i);
                         
@@ -662,7 +662,7 @@ void GameLayer::calculateDamage(int &chainNum, int &healing, int &damage, std::s
 }
 
 // アタッカー判定
-bool GameLayer::isAttackers(BallSprite::BallType type, Character::Element element) {
+bool GameLayer::isAttacker(BallSprite::BallType type, Character::Element element) {
     switch (type) {
         case BallSprite::BallType::Red:
             // 赤ボール:火属性
@@ -711,25 +711,24 @@ void GameLayer::attackToEnemy(int damage, std::set<int> attackers) {
     // 敵のHPを取得する
     float preHpPercentage = _enemyData->getHpPercentage();
     
-    // ダメージをセットする
+    //ダメージをセットする
     int afterHp = _enemyData->getHp() - damage;
-    if (afterHp < 0) {
-        afterHp = 0;
-    }
-    _enemyData->setHp(afterHp);                     // 敵のHPをセットする
+    if (afterHp < 0) afterHp = 0;
+    _enemyData->setHp (afterHp);
     
-    // 敵のヒットポイントバーのアニメーション
-    auto act = ProgressFromTo::create(0.5, preHpPercentage, _enemyData->getHpPercentage());     // アニメーションを用意する
+    //敵ヒットポイントバーのアニメーション
+    auto act = ProgressFromTo::create(0.5, preHpPercentage, _enemyData->getHpPercentage());
     _hpBarForEnemy->runAction(act);
     
-    // 敵の被ダメージアニメーション
-    _enemy->runAction(vibratingAnimation(afterHp));                                             // アニメーションを用意する
+    //敵の被ダメージアニメーション
+    _enemy->runAction(vibratingAnimation(afterHp));
     
-    // メンバーの攻撃アニメーション
-    for (auto attacker : attackers) {
+    //メンバーの攻撃アニメーション
+    for (auto attacker : attackers)
+    {
         auto member = _members.at(attacker);
         member->runAction(Sequence::create(MoveBy::create(0.1, Point(0, 10)),
-                                           MoveBy::create(0.1, Point(0, -10)), nullptr));       // アニメーションの用意する
+                                           MoveBy::create(0.1, Point(0, -10)), nullptr));
     }
 }
 
@@ -754,7 +753,7 @@ void GameLayer::healMember(int healing) {
         
         // メンバーHPアニメーション
         auto act = ProgressFromTo::create(0.5, preHpPercentage, memberData->getHpPercentage());     // アニメーションを用意する
-        _hpBarForMemebers.at(i)->runAction(act);
+        _hpBarForMembers.at(i)->runAction(act);
     }
 }
 
@@ -779,7 +778,7 @@ void GameLayer::attackFromEnemy() {
     } while (memberData->getHp() <= 0);
     
     auto member = _members.at(index);
-    auto hpBarForMember = _hpBarForMemebers.at(index);
+    auto hpBarForMember = _hpBarForMembers.at(index);
     
     // メンバーにダメージを与える
     float preHpPercentage = memberData->getHpPercentage();
@@ -798,7 +797,7 @@ void GameLayer::attackFromEnemy() {
     
     // 敵の攻撃アニメーション
     auto seq = Sequence::create(MoveBy::create(0.1, Point(0, -10)),
-                                MoveBy::create(0.1, Point(0, -10)), NULL);                      // アニメーションを用意する
+                                MoveBy::create(0.1, Point(0, 10)), NULL);                      // アニメーションを用意する
     _enemy->runAction(seq);
     
     // 味方の全員をチェック
@@ -904,9 +903,9 @@ void GameLayer::winAnimation() {
     
     // 次のレベルを設定（Level13の次はないので、Level11に戻る）
     if (_level >= 3) {
-        _nextlevel = 1;
+        _nextLevel = 1;
     }else{
-        _nextlevel = _level + 1;                // 次のレベルを指定する
+        _nextLevel = _level + 1;                // 次のレベルを指定する
     }
     
     // 指定秒数に次のシーンへ
@@ -926,7 +925,7 @@ void GameLayer::loseAnimation() {
     addChild(lose, ZOrder::Result);
     
     // 次のレベルを設定
-    _nextlevel = 1;
+    _nextLevel = 1;
     
     // 指定秒数に次のシーンへ
     scheduleOnce(schedule_selector(GameLayer::nextScene), 3);
@@ -935,6 +934,6 @@ void GameLayer::loseAnimation() {
 // 次のシーンへ遷移
 void GameLayer::nextScene(float dt) {
     // 次のシーンを生成する
-    auto scene = GameLayer::createScene(_nextlevel);
+    auto scene = GameLayer::createScene(_nextLevel);
     Director::getInstance()->replaceScene(scene);
 }

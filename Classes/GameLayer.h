@@ -53,10 +53,10 @@ protected:
     
     cocos2d::Vector<Character*> _memberDatum;                                   // メンバー情報
     cocos2d::Vector<cocos2d::Sprite*> _members;                                 // メンバーグラフィック
-    cocos2d::Vector<cocos2d::ProgressTimer*> _hpBarForMemebers;                 // メンバーのヒットポイントバー
+    cocos2d::Vector<cocos2d::ProgressTimer*> _hpBarForMembers;                 // メンバーのヒットポイントバー
     
     int _level;                                                                 /** 現在のレベル */
-    int _nextlevel;                                                             /** 次のレベル */
+    int _nextLevel;                                                             /** 次のレベル */
     
     void initBackground();                                                      // 背景の初期化
     void initBalls();                                                           // ボールの初期表示
@@ -82,7 +82,7 @@ protected:
     void initMembers();                                                         // メンバーの表示
     void calculateDamage(int &chinNum, int &healing, int &damage,
                          std::set<int> &attackers);                             // ダメージの計算
-    bool isAttackers(BallSprite::BallType type, Character::Element element);    // アタッカー判定
+    bool isAttacker(BallSprite::BallType type, Character::Element element);    // アタッカー判定
     void attackToEnemy(int damage, std::set<int> attackers);                    // 敵への攻撃
     void healMember(int healing);                                               // メンバーの回復
     void attackFromEnemy();                                                     // 敵からの攻撃
